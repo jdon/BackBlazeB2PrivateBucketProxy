@@ -1,9 +1,11 @@
 # B2PrivateBucketProxy
 
+Coded in 1 day.
+
+
 Allows access to files in a private BackBlaze B2 bucket for one week, after that
 it will return a 410 error.
 
-Coded in 1 day.
 
 Requiresa a `.env` file in the following format:
 

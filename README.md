@@ -1,11 +1,12 @@
 # B2PrivateBucketProxy
 
-Allows access to files in a private BackBlaze B2 bucket for one week, after that it will return a 410 error.
+Allows access to files in a private BackBlaze B2 bucket for one week, after that
+it will return a 410 error.
 
 Requiresa a `.env` file in the following format:
 
 ```
-PORT=8080
+port=8080
 keyID=h1c7wuy56dltx6nixmiych9wv
 applicationKey=fun7ztolviavg2kfwpxvndxn3gnyr32
 bucketID=13o4f8i9fr3fzlmpvrqahi65

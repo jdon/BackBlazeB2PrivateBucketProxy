@@ -16,9 +16,6 @@ const downloadURL = process.env.downloadURL;
 const accountId = process.env.keyID;
 const applicationKey = process.env.applicationKey;
 
-console.log(accountId);
-console.log(applicationKey);
-
 app.listen(port, async function() {
 	b2 = new B2({
 		accountId: accountId,

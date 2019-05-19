@@ -25,7 +25,6 @@ app.listen(port, async function() {
 });
 
 app.get('*', async function(req, res) {
-	console.log(req.path);
 	try {
 		var fileNameWithPath = req.path.slice(1);
 		let address = await getAddress(fileNameWithPath);
@@ -57,7 +56,6 @@ function getAddress(fileName) {
 	} else {
 		return getAuthForFileName(fileName).then(function(auth) {
 			let address = createAuthAddress(fileName, auth);
-			console.log(address);
 			myCache.set(fileName, address);
 			return address;
 		});
@@ -74,7 +72,6 @@ async function getAuthForFileName(fileName, data) {
 
 	if (diffSeconds > 1) {
 		let auth = await getAuth(fileName, diffSeconds);
-		console.log(auth);
 		return auth.authorizationToken;
 	}
 }

@@ -25,11 +25,17 @@ app.listen(port, async function() {
 });
 
 app.get('*', async function(req, res) {
+	console.log(req.path);
+	let headers = req.headers;
+	if (headers['x-forwarded-for']) {
+		console.log(headers['x-forwarded-for']);
+	}
 	try {
 		var fileNameWithPath = req.path.slice(1);
 		let address = await getAddress(fileNameWithPath);
 		res.redirect(address);
 	} catch (err) {
+		console.log(err);
 		if (err == 404 || err == 410) {
 			res.send(err);
 		}
@@ -55,8 +61,8 @@ function getAddress(fileName) {
 		return Promise.resolve(value);
 	} else {
 		return getAuthForFileName(fileName).then(function(auth) {
-			let address = createAuthAddress(fileName, auth);
-			myCache.set(fileName, address);
+			let address = createAuthAddress(fileName, auth.authorizationToken);
+			myCache.set(fileName, address, auth.validDurationInSeconds);
 			return address;
 		});
 	}
@@ -72,7 +78,7 @@ async function getAuthForFileName(fileName, data) {
 
 	if (diffSeconds > 1) {
 		let auth = await getAuth(fileName, diffSeconds);
-		return auth.authorizationToken;
+		return auth;
 	}
 }
 
@@ -91,6 +97,7 @@ async function getAuth(fileName, validDurationInSeconds) {
 			fileNamePrefix: fileName,
 			validDurationInSeconds: 604800,
 		});
+		response.data.validDurationInSeconds = validDurationInSeconds;
 		return response.data;
 	} catch (err) {
 		return Promise.reject('410');

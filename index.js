@@ -9,6 +9,7 @@ const app = express();
 
 var b2;
 
+const port = process.env.port;
 const bucketID = process.env.bucketID;
 const bucketName = process.env.bucketName;
 const downloadURL = process.env.downloadURL;
@@ -18,7 +19,7 @@ const applicationKey = process.env.applicationKey;
 console.log(accountId);
 console.log(applicationKey);
 
-app.listen(8080, async function() {
+app.listen(port, async function() {
 	b2 = new B2({
 		accountId: accountId,
 		applicationKey: applicationKey,

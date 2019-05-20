@@ -3,6 +3,7 @@ const express = require('express');
 const B2 = require('backblaze-b2');
 const moment = require('moment');
 const NodeCache = require('node-cache');
+const retry = require('async-retry');
 const myCache = new NodeCache({ stdTTL: 6000, checkperiod: 12000 });
 
 const app = express();
@@ -21,7 +22,11 @@ app.listen(port, async function() {
 		accountId: accountId,
 		applicationKey: applicationKey,
 	});
-	await b2.authorize();
+	try {
+		await b2.authorize();
+	} catch (err) {
+		process.exit(err);
+	}
 });
 
 app.get('*', async function(req, res) {
@@ -36,7 +41,7 @@ app.get('*', async function(req, res) {
 		res.redirect(address);
 	} catch (err) {
 		console.log(err);
-		if (err == 404 || err == 410) {
+		if (err == 404 || err == 410 || err == 401) {
 			res.send(err);
 		}
 	}
@@ -120,6 +125,15 @@ async function getFile(fileName, infoOnly) {
 			response.data;
 		}
 	} catch (err) {
+		if (err.message == 'Invalid authorizationToken') {
+			return retry(b2.authorize, { retries: 3 })
+				.then(function(result) {
+					console.log('result:' + result);
+				})
+				.catch(function() {
+					return Promise.reject('401');
+				});
+		}
 		return Promise.reject('404');
 	}
 }

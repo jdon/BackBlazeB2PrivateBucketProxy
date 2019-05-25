@@ -1,4 +1,5 @@
 require('dotenv').config();
+const debug = require('debug')('B2Proxy');
 const express = require('express');
 const B2 = require('backblaze-b2');
 const moment = require('moment');
@@ -25,26 +26,21 @@ app.listen(port, async function() {
 	try {
 		await b2.authorize();
 	} catch (err) {
+		console.log(
+			'Unable to authorize with B2, please check your credentials'
+		);
 		process.exit(err);
 	}
 });
 
 app.get('*', async function(req, res) {
-	console.log(req.path);
+	debug(req.path);
 	let headers = req.headers;
 	if (headers['x-forwarded-for']) {
-		console.log(headers['x-forwarded-for']);
+		debug(headers['x-forwarded-for']);
 	}
-	try {
-		var fileNameWithPath = req.path.slice(1);
-		let address = await getAddress(fileNameWithPath);
-		res.redirect(address);
-	} catch (err) {
-		console.log(err);
-		if (err == 404 || err == 410 || err == 401) {
-			res.send(err);
-		}
-	}
+	var fileNameWithPath = req.path.slice(1);
+	return getAddressWrapper(fileNameWithPath, res);
 });
 
 function createAuthAddress(fileName, auth) {
@@ -73,67 +69,94 @@ function getAddress(fileName) {
 	}
 }
 
-async function getAuthForFileName(fileName, data) {
-	let fileInfo = await getFile(fileName, true);
-
-	let timeUpload = fileInfo['x-bz-upload-timestamp'];
-	let new_date = moment.unix(timeUpload).add(7, 'days');
-	let diffSeconds = new_date.diff(moment.unix(timeUpload), 'seconds');
-	let fileID = fileInfo['x-bz-file-id'];
-
-	if (diffSeconds > 1) {
-		let auth = await getAuth(fileName, diffSeconds);
-		return auth;
-	}
+function getAuthForFileName(fileName, data) {
+	return getFile(fileName, true).then(function(fileInfo) {
+		let timeUpload = fileInfo['x-bz-upload-timestamp'];
+		let new_date = moment.unix(timeUpload).add(7, 'days');
+		let diffSeconds = new_date.diff(moment.unix(timeUpload), 'seconds');
+		let fileID = fileInfo['x-bz-file-id'];
+		if (diffSeconds > 1) {
+			return getAuth(fileName, diffSeconds).catch(function(error) {
+				console.log('test6');
+			});
+		} else {
+			return {
+				response: {
+					status: 410,
+				},
+				message: '',
+			};
+		}
+	});
 }
 
-async function init() {
-	var keys = JSON.parse(fs.readFileSync(__dirname + '/keys.json'));
-
-	bucketID = keys.bucketID;
-	bucketName = keys.bucketName;
-	downloadURL = keys.downloadURL;
-}
-
-async function getAuth(fileName, validDurationInSeconds) {
-	try {
-		let response = await b2.getDownloadAuthorization({
+function getAuth(fileName, validDurationInSeconds) {
+	return b2
+		.getDownloadAuthorization({
 			bucketId: bucketID,
 			fileNamePrefix: fileName,
-			validDurationInSeconds: 604800,
+			validDurationInSeconds: validDurationInSeconds,
+		})
+		.then(function(response) {
+			response.data.validDurationInSeconds = validDurationInSeconds;
+			return response.data;
 		});
-		response.data.validDurationInSeconds = validDurationInSeconds;
-		return response.data;
-	} catch (err) {
-		return Promise.reject('410');
-	}
 }
 
-async function getFile(fileName, infoOnly) {
+function getFile(fileName, infoOnly) {
 	let method = infoOnly ? 'head' : 'get';
-	try {
-		let response = await b2.downloadFileByName({
+	return b2
+		.downloadFileByName({
 			bucketName: bucketName,
 			fileName: fileName,
 			axiosOverride: {
 				method: method,
 			},
+		})
+		.then(function(response) {
+			if (infoOnly) {
+				return response.headers;
+			} else {
+				return response.data;
+			}
 		});
-		if (infoOnly) {
-			return response.headers;
-		} else {
-			response.data;
-		}
+}
+
+function wrapError(err, res) {
+	debug(err);
+	res.status(err.response.status);
+	return res.send(err.message);
+}
+
+async function getAddressWrapper(fileNameWithPath, res) {
+	try {
+		return getAddr(fileNameWithPath, res);
 	} catch (err) {
 		if (err.message == 'Invalid authorizationToken') {
-			return retry(b2.authorize, { retries: 3 })
-				.then(function(result) {
-					console.log('result:' + result);
-				})
-				.catch(function() {
-					return Promise.reject('401');
-				});
+			try {
+				await b2.authorize();
+				return getAddr(fileNameWithPath, res);
+			} catch (err) {
+				return wrapError(
+					{
+						response: {
+							status: 401,
+						},
+						message: err.message,
+					},
+					res
+				);
+			}
 		}
-		return Promise.reject('404');
 	}
+}
+
+function getAddr(fileNameWithPath, res) {
+	return getAddress(fileNameWithPath)
+		.then(function(address) {
+			return res.redirect(address);
+		})
+		.catch(function(error) {
+			return wrapError(error, res);
+		});
 }

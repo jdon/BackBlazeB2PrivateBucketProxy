@@ -135,7 +135,12 @@ async function getAddressWrapper(fileNameWithPath, res) {
 		console.log(err);
 		if (err.message == 'Invalid authorizationToken') {
 			try {
-				await b2.authorize();
+				let newB2 = new B2({
+					accountId: accountId,
+					applicationKey: applicationKey,
+				});
+				await newB2.authorize();
+				b2 = newB2;
 				return getAddr(fileNameWithPath, res);
 			} catch (error) {
 				console.log(err);

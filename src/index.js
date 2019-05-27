@@ -132,17 +132,19 @@ async function getAddressWrapper(fileNameWithPath, res) {
 	try {
 		return getAddr(fileNameWithPath, res);
 	} catch (err) {
+		console.log(err);
 		if (err.message == 'Invalid authorizationToken') {
 			try {
 				await b2.authorize();
 				return getAddr(fileNameWithPath, res);
-			} catch (err) {
+			} catch (error) {
+				console.log(err);
 				return wrapError(
 					{
 						response: {
 							status: 401,
 						},
-						message: err.message,
+						message: error.message,
 					},
 					res
 				);

@@ -71,21 +71,19 @@ function getAddress(fileName) {
 
 function getAuthForFileName(fileName, data) {
 	return getFile(fileName, true).then(function(fileInfo) {
-		let timeUpload = fileInfo['x-bz-upload-timestamp'];
+		let timeUpload = fileInfo['x-bz-upload-timestamp'] / 1000;
 		let new_date = moment.unix(timeUpload).add(7, 'days');
-		let diffSeconds = new_date.diff(moment.unix(timeUpload), 'seconds');
+		let diffSeconds = new_date.diff(moment(), 'seconds');
 		let fileID = fileInfo['x-bz-file-id'];
 		if (diffSeconds > 1) {
-			return getAuth(fileName, diffSeconds).catch(function(error) {
-				console.log('test6');
-			});
+			return getAuth(fileName, diffSeconds);
 		} else {
-			return {
+			return Promise.reject({
 				response: {
 					status: 410,
 				},
-				message: '',
-			};
+				message: '410 target resource is no longer available',
+			});
 		}
 	});
 }
@@ -123,7 +121,7 @@ function getFile(fileName, infoOnly) {
 }
 
 function wrapError(err, res) {
-	debug(err);
+	//debug(err);
 	res.status(err.response.status);
 	return res.send(err.message);
 }
@@ -132,26 +130,17 @@ async function getAddressWrapper(fileNameWithPath, res) {
 	try {
 		return getAddr(fileNameWithPath, res);
 	} catch (err) {
-		console.log(err);
-		if (err.message == 'Invalid authorizationToken') {
+		if (err.code != 404) {
+			b2 = new B2({
+				accountId: accountId,
+				applicationKey: applicationKey,
+			});
 			try {
-				let newB2 = new B2({
-					accountId: accountId,
-					applicationKey: applicationKey,
-				});
-				await newB2.authorize();
-				b2 = newB2;
+				await b2.authorize();
 				return getAddr(fileNameWithPath, res);
-			} catch (error) {
-				console.log(err);
-				return wrapError(
-					{
-						response: {
-							status: 401,
-						},
-						message: error.message,
-					},
-					res
+			} catch (err) {
+				console.log(
+					'Unable to authorize with B2, please check your credentials'
 				);
 			}
 		}

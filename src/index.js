@@ -26,9 +26,7 @@ app.listen(port, async function() {
 	try {
 		await b2.authorize();
 	} catch (err) {
-		console.log(
-			'Unable to authorize with B2, please check your credentials'
-		);
+		debug('Unable to authorize with B2, please check your credentials');
 		process.exit(err);
 	}
 });
@@ -131,15 +129,19 @@ async function getAddressWrapper(fileNameWithPath, res) {
 		return getAddr(fileNameWithPath, res);
 	} catch (err) {
 		if (err.code != 404) {
+			debug(
+				"Looks like the access token ran out, let's try getting another one"
+			);
 			b2 = new B2({
 				accountId: accountId,
 				applicationKey: applicationKey,
 			});
 			try {
 				await b2.authorize();
+				debug('Successfully got an access token');
 				return getAddr(fileNameWithPath, res);
 			} catch (err) {
-				console.log(
+				debug(
 					'Unable to authorize with B2, please check your credentials'
 				);
 			}
@@ -148,11 +150,7 @@ async function getAddressWrapper(fileNameWithPath, res) {
 }
 
 function getAddr(fileNameWithPath, res) {
-	return getAddress(fileNameWithPath)
-		.then(function(address) {
-			return res.redirect(address);
-		})
-		.catch(function(error) {
-			return wrapError(error, res);
-		});
+	return getAddress(fileNameWithPath).then(function(address) {
+		return res.redirect(address);
+	});
 }

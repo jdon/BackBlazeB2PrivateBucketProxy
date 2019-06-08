@@ -4,7 +4,6 @@ const express = require('express');
 const B2 = require('backblaze-b2');
 const moment = require('moment');
 const NodeCache = require('node-cache');
-const retry = require('async-retry');
 const myCache = new NodeCache({ stdTTL: 6000, checkperiod: 12000 });
 
 const app = express();
@@ -18,22 +17,8 @@ const downloadURL = process.env.downloadURL;
 const accountId = process.env.keyID;
 const applicationKey = process.env.applicationKey;
 
-app.listen(port, async function() {
-	b2 = new B2({
-		accountId: accountId,
-		applicationKey: applicationKey,
-	});
-	try {
-		await b2.authorize();
-	} catch (err) {
-		console.log(
-			'Unable to authorize with B2, please check your credentials'
-		);
-		process.exit(err);
-	}
-});
 
-app.get('*', async function(req, res) {
+app.get('*', function(req, res) {
 	debug(req.path);
 	let headers = req.headers;
 	if (headers['x-forwarded-for']) {
@@ -41,6 +26,22 @@ app.get('*', async function(req, res) {
 	}
 	var fileNameWithPath = req.path.slice(1);
 	return getAddressWrapper(fileNameWithPath, res);
+});
+
+app.listen(port, async function() {
+	b2 = new B2({
+		accountId: accountId,
+		applicationKey: applicationKey,
+	});
+	try {
+		await b2.authorize();
+		debug('Successfully authorized with B2');
+	} catch (err) {
+		debug(
+			'Unable to authorize with B2, please check your credentials!'
+		);
+		process.exit(err);
+	}
 });
 
 function createAuthAddress(fileName, auth) {
@@ -139,7 +140,7 @@ async function getAddressWrapper(fileNameWithPath, res) {
 				await b2.authorize();
 				return getAddr(fileNameWithPath, res);
 			} catch (err) {
-				console.log(
+				debug(
 					'Unable to authorize with B2, please check your credentials'
 				);
 			}

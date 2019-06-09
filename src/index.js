@@ -14,9 +14,13 @@ const port = process.env.port;
 const bucketID = process.env.bucketID;
 const bucketName = process.env.bucketName;
 const downloadURL = process.env.downloadURL;
-const accountId = process.env.keyID;
+const applicationKeyId = process.env.keyID;
 const applicationKey = process.env.applicationKey;
 
+b2 = new B2({
+	applicationKeyId: applicationKeyId,
+	applicationKey: applicationKey,
+});
 
 app.get('*', function(req, res) {
 	debug(req.path);
@@ -25,23 +29,30 @@ app.get('*', function(req, res) {
 		debug(headers['x-forwarded-for']);
 	}
 	var fileNameWithPath = req.path.slice(1);
-	return getAddressWrapper(fileNameWithPath, res);
+	return b2
+		.authorize()
+		.then(function() {
+			return getAddress(fileNameWithPath).then(function(address) {
+				return res.redirect(address);
+			});
+		})
+		.catch(function(err) {
+			res.send(err.message);
+			debug(err.message);
+		});
 });
 
-app.listen(port, async function() {
-	b2 = new B2({
-		accountId: accountId,
-		applicationKey: applicationKey,
-	});
-	try {
-		await b2.authorize();
-		debug('Successfully authorized with B2');
-	} catch (err) {
-		debug(
-			'Unable to authorize with B2, please check your credentials!'
-		);
-		process.exit(err);
-	}
+app.listen(port, function() {
+	b2.authorize()
+		.then(function() {
+			debug('Successfully authorized with B2');
+		})
+		.catch(function(err) {
+			debug(
+				'Unable to authorize with B2, please check your credentials!'
+			);
+			process.exit(err);
+		});
 });
 
 function createAuthAddress(fileName, auth) {
@@ -83,7 +94,7 @@ function getAuthForFileName(fileName, data) {
 				response: {
 					status: 410,
 				},
-				message: '410 target resource is no longer available',
+				message: 'Request failed with status code 410',
 			});
 		}
 	});
@@ -121,39 +132,4 @@ function getFile(fileName, infoOnly) {
 		});
 }
 
-function wrapError(err, res) {
-	//debug(err);
-	res.status(err.response.status);
-	return res.send(err.message);
-}
-
-async function getAddressWrapper(fileNameWithPath, res) {
-	try {
-		return getAddr(fileNameWithPath, res);
-	} catch (err) {
-		if (err.code != 404) {
-			b2 = new B2({
-				accountId: accountId,
-				applicationKey: applicationKey,
-			});
-			try {
-				await b2.authorize();
-				return getAddr(fileNameWithPath, res);
-			} catch (err) {
-				debug(
-					'Unable to authorize with B2, please check your credentials'
-				);
-			}
-		}
-	}
-}
-
-function getAddr(fileNameWithPath, res) {
-	return getAddress(fileNameWithPath)
-		.then(function(address) {
-			return res.redirect(address);
-		})
-		.catch(function(error) {
-			return wrapError(error, res);
-		});
-}
+function getAddr(fileNameWithPath, res) {}

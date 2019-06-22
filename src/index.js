@@ -29,17 +29,23 @@ app.get('*', function(req, res) {
 		debug(headers['x-forwarded-for']);
 	}
 	var fileNameWithPath = req.path.slice(1);
-	return b2
-		.authorize()
-		.then(function() {
-			return getAddress(fileNameWithPath).then(function(address) {
-				return res.redirect(address);
+	let address = myCache.get(fileNameWithPath);
+
+	if (address != undefined) {
+		return res.redirect(address);
+	} else {
+		return b2
+			.authorize()
+			.then(function() {
+				return getAddress(fileNameWithPath).then(function(address) {
+					return res.redirect(address);
+				});
+			})
+			.catch(function(err) {
+				res.send(err.message);
+				debug(err.message);
 			});
-		})
-		.catch(function(err) {
-			res.send(err.message);
-			debug(err.message);
-		});
+	}
 });
 
 app.listen(port, function() {
@@ -68,17 +74,11 @@ function createAuthAddress(fileName, auth) {
 }
 
 function getAddress(fileName) {
-	value = myCache.get(fileName);
-
-	if (value != undefined) {
-		return Promise.resolve(value);
-	} else {
-		return getAuthForFileName(fileName).then(function(auth) {
-			let address = createAuthAddress(fileName, auth.authorizationToken);
-			myCache.set(fileName, address, auth.validDurationInSeconds);
-			return address;
-		});
-	}
+	return getAuthForFileName(fileName).then(function(auth) {
+		let address = createAuthAddress(fileName, auth.authorizationToken);
+		myCache.set(fileName, address, auth.validDurationInSeconds);
+		return address;
+	});
 }
 
 function getAuthForFileName(fileName, data) {

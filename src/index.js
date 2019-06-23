@@ -16,8 +16,6 @@ const downloadURL = process.env.downloadURL;
 const applicationKeyId = process.env.keyID;
 const applicationKey = process.env.applicationKey;
 
-debug(applicationKeyId);
-
 let b2 = new b2Wrapper(
 	bucketID,
 	bucketName,

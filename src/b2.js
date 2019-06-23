@@ -20,7 +20,6 @@ class b2Wrapper {
 	}
 
 	async init() {
-		debug(this.bucketID);
 		try {
 			let authedB2 = new B2({
 				applicationKeyId: this.applicationKeyId,
@@ -46,7 +45,7 @@ class b2Wrapper {
 				throw 'Not authorized, be sure to run init() first';
 			}
 			//b2 lib doesn't automatically auth, so lets just auth every call
-			await this.b2.authorize();
+			await this.init();
 
 			let response = await this.b2.downloadFileByName({
 				bucketName: this.bucketName,
@@ -78,7 +77,6 @@ class b2Wrapper {
 				};
 			}
 			
-			debug(diffSeconds);
 			let authResponse = await this.b2.getDownloadAuthorization({
 				bucketId: this.bucketID,
 				fileNamePrefix: fileName,

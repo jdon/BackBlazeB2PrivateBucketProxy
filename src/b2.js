@@ -30,7 +30,6 @@ class b2Wrapper {
 			debug('Successfully authorized with B2');
 
 			this.b2 = authedB2;
-			this.isAuthorized = true;
 		} catch (err) {
 			debug(
 				'Unable to authorize with B2, please check your credentials!'
@@ -41,9 +40,6 @@ class b2Wrapper {
 
 	async getFile(fileName) {
 		try {
-			if (!this.isAuthorized) {
-				throw 'Not authorized, be sure to run init() first';
-			}
 			//b2 lib doesn't automatically auth, so lets just auth every call
 			await this.init();
 

@@ -1,13 +1,10 @@
 # B2PrivateBucketProxy
 
-Coded in 1 day.
-
-
 Allows access to files in a private BackBlaze B2 bucket for one week, after that
 it will return a 410 error.
 
 
-Requiresa a `.env` file in the following format:
+Requires a `.env` file in the following format:
 
 ```
 port=8080
@@ -16,6 +13,7 @@ applicationKey=fun7ztolviavg2kfwpxvndxn3gnyr32
 bucketID=13o4f8i9fr3fzlmpvrqahi65
 bucketName=bucketName
 downloadURL=https://domain.tld/files
+DEBUG=B2Proxy
 ```
 
 For running the docker you can also use the `.env` file. e.g

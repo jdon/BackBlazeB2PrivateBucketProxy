@@ -12,6 +12,7 @@
 	"dependencies": {
 		"backblaze-b2": "^1.4.0",
 		"debug": "^4.1.1",
+		"dotenv": "^8.0.0",
 		"express": "^4.17.0",
 		"moment": "^2.24.0",
 		"node-cache": "^4.2.0"
@@ -22,7 +23,6 @@
 		"chai": "*",
 		"cucumber": "^5.1.0",
 		"request": "^2.88.0",
-		"request-promise": "^4.2.4",
-		"dotenv": "^8.0.0"
+		"request-promise": "^4.2.4"
 	}
 }

@@ -23,7 +23,9 @@ For running the docker you can also use the `.env` file. e.g
 
 
 
+GitHub: 
+https://github.com/jdon/BackBlazeB2PrivateBucketProxy
+
 
 Docker Hub:
-
 https://hub.docker.com/r/jdon278/b2proxy/

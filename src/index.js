@@ -15,13 +15,15 @@ const bucketName = process.env.bucketName;
 const downloadURL = process.env.downloadURL;
 const applicationKeyId = process.env.keyID;
 const applicationKey = process.env.applicationKey;
+const authSeconds = process.env.authSeconds;
 
 let b2 = new b2Wrapper(
 	bucketID,
 	bucketName,
 	downloadURL,
 	applicationKeyId,
-	applicationKey
+	applicationKey,
+	authSeconds
 );
 
 app.get('*', async function(req, res) {

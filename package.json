@@ -1,10 +1,10 @@
 {
-	"name": "pichost",
+	"name": "B2proxy",
 	"version": "1.0.0",
 	"description": "",
-	"main": "index.js",
+	"main": "src/index.js",
 	"scripts": {
-		"test": "echo \"Error: no test specified\" && exit 1",
+		"test": "./node_modules/.bin/cucumber-js",
 		"start": "node src/index.js"
 	},
 	"author": "",
@@ -12,13 +12,17 @@
 	"dependencies": {
 		"backblaze-b2": "^1.4.0",
 		"debug": "^4.1.1",
-		"dotenv": "^8.0.0",
 		"express": "^4.17.0",
 		"moment": "^2.24.0",
 		"node-cache": "^4.2.0"
 	},
 	"devDependencies": {
 		"eslint": "^6.0.0",
-		"eslint-plugin-node": "^9.1.0"
+		"eslint-plugin-node": "^9.1.0",
+		"chai": "*",
+		"cucumber": "^5.1.0",
+		"request": "^2.88.0",
+		"request-promise": "^4.2.4",
+		"dotenv": "^8.0.0"
 	}
 }

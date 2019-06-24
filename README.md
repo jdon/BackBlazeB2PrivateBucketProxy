@@ -13,6 +13,7 @@ applicationKey=fun7ztolviavg2kfwpxvndxn3gnyr32
 bucketID=13o4f8i9fr3fzlmpvrqahi65
 bucketName=bucketName
 downloadURL=https://domain.tld/files
+authSeconds=604800
 DEBUG=B2Proxy
 ```
 

@@ -8,13 +8,15 @@ class b2Wrapper {
 		bucketName,
 		downloadURL,
 		applicationKeyId,
-		applicationKey
+		applicationKey,
+		authSeconds
 	) {
 		this.bucketID = bucketID;
 		this.bucketName = bucketName;
 		this.downloadURL = downloadURL;
 		this.applicationKeyId = applicationKeyId;
 		this.applicationKey = applicationKey;
+		this.authSeconds = authSeconds;
 		this.isAuthorized = false;
 		this.b2 = null;
 	}
@@ -30,6 +32,7 @@ class b2Wrapper {
 			debug('Successfully authorized with B2');
 
 			this.b2 = authedB2;
+			return true
 		} catch (err) {
 			debug(
 				'Unable to authorize with B2, please check your credentials!'
@@ -50,11 +53,10 @@ class b2Wrapper {
 					method: 'head',
 				},
 			});
-			
 
 			let headers = response.headers;
 
-			if(!headers['x-bz-upload-timestamp']){
+			if (!headers['x-bz-upload-timestamp']) {
 				throw {
 					status: 404,
 					message: 'File not found',
@@ -63,31 +65,37 @@ class b2Wrapper {
 
 			// check that file was upload within the last week
 			let timeUpload = headers['x-bz-upload-timestamp'] / 1000;
-			let new_date = moment.unix(timeUpload).add(7, 'days');
-			let diffSeconds = new_date.diff(moment(), 'seconds');
+			let new_date = moment
+				.unix(timeUpload)
+				.add(this.authSeconds, 'seconds');
+			let validDurationInSeconds = new_date.diff(moment(), 'seconds');
 
-			if (diffSeconds < 1) {
+			if (validDurationInSeconds < 1) {
 				throw {
 					status: 410,
 					message: 'The requested file is no longer available',
 				};
 			}
-			
+
+			validDurationInSeconds =
+				validDurationInSeconds >= 604800
+					? 604800
+					: validDurationInSeconds;
+
 			let authResponse = await this.b2.getDownloadAuthorization({
 				bucketId: this.bucketID,
 				fileNamePrefix: fileName,
-				validDurationInSeconds: diffSeconds,
+				validDurationInSeconds: validDurationInSeconds,
 			});
 
 			let authData = authResponse.data;
 
-			if(!authData['authorizationToken']){
+			if (!authData['authorizationToken']) {
 				throw {
 					status: 500,
 					message: 'Failed to get authorization',
 				};
 			}
-
 
 			let authToken = authData.authorizationToken;
 

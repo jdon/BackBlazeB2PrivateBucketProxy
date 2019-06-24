@@ -1,4 +1,3 @@
-# features/simple_math.feature
 Feature: Successfully authenticates and gets a file
 	In order to download a file
 	As a user

@@ -12,7 +12,7 @@ const applicationKeyId = process.env.keyID;
 const applicationKey = process.env.applicationKey;
 const authSeconds = process.env.authSeconds;
 
-Given('the correct environmental variables have been set', function() {
+Given('the correct environmental variables have been set', () => {
 	assert.isString(bucketID);
 	assert.isString(bucketName);
 	assert.isString(downloadURL);
@@ -25,7 +25,7 @@ let b2;
 
 let authResult;
 
-When('I authenticate with B2', async function() {
+When('I authenticate with B2', async () => {
 	b2 = new b2Wrapper(
 		bucketID,
 		bucketName,
@@ -40,34 +40,34 @@ When('I authenticate with B2', async function() {
 	assert.isBoolean(authResult);
 });
 
-Then('I am Successfully authenticated', function() {
+Then('I am Successfully authenticated', () => {
 	assert.isTrue(authResult);
 });
 
 let fileResult;
 
-When('I request {string}', async function(string) {
+When('I request {string}', async (string) => {
 	fileResult = await b2.getFile(string);
 
 	assert.isString(fileResult);
 });
 
-Then('I should receive a URL with an authentication token', function() {
+Then('I should receive a URL with an authentication token', () => {
 	assert(fileResult.includes('?Authorization='));
 });
 
-Then('I can successfully download the file', async function() {
+Then('I can successfully download the file', async () => {
 	let optionsStart = {
 		uri: fileResult,
 		method: 'head',
 		resolveWithFullResponse: true,
 	};
 	return rp(optionsStart)
-		.then(function(response) {
+		.then((response) => {
 			// Process html...
 			assert.equal(response.statusCode, 200);
 		})
-		.catch(function(err) {
+		.catch((err) => {
 			assert.fail(0, 1, err);
 		});
 });

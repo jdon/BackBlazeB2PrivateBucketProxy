@@ -25,15 +25,15 @@ b2Router.get('*', async (req, res) => {
 	debug(req.path);
 	const fileNameWithPath = decodeURI(req.path.slice(1));
 	const cachedResponse = cache.get(fileNameWithPath);
-	if(cachedResponse != null){
+	if (cachedResponse != null) {
 		return res.redirect(cachedResponse);
 	}
 	try {
 		let authURL = await b2.getFile(fileNameWithPath);
-		cache.set(fileNameWithPath, authURL)
+		cache.set(fileNameWithPath, authURL);
 		return res.redirect(authURL);
 	} catch (err) {
 		return res.send(err);
 	}
-})
+});
 module.exports = b2Router;

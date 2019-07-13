@@ -1,44 +1,46 @@
 const NodeCache = require('node-cache');
 
 class Cache {
-
-  constructor(ttlSeconds) {
-    this.cache = new NodeCache({ stdTTL: ttlSeconds, checkperiod: ttlSeconds * 0.2, useClones: false });
-  }
-
-  get(key) {
-    const value = this.cache.get(key);
-    if (value) {
-      return value;
+	constructor(ttlSeconds) {
+		this.cache = new NodeCache({
+			stdTTL: ttlSeconds,
+			checkperiod: ttlSeconds * 0.2,
+			useClones: false,
+		});
 	}
-	return null;
-  }
 
-  set(key, value){
-	this.cache.set(key,value);
-  }
+	get(key) {
+		const value = this.cache.get(key);
+		if (value) {
+			return value;
+		}
+		return null;
+	}
 
-  del(keys) {
-    this.cache.del(keys);
-  }
+	set(key, value) {
+		this.cache.set(key, value);
+	}
 
-  delStartWith(startStr = '') {
-    if (!startStr) {
-      return;
-    }
+	del(keys) {
+		this.cache.del(keys);
+	}
 
-    const keys = this.cache.keys();
-    for (const key of keys) {
-      if (key.indexOf(startStr) === 0) {
-        this.del(key);
-      }
-    }
-  }
+	delStartWith(startStr = '') {
+		if (!startStr) {
+			return;
+		}
 
-  flush() {
-    this.cache.flushAll();
-  }
+		const keys = this.cache.keys();
+		for (const key of keys) {
+			if (key.indexOf(startStr) === 0) {
+				this.del(key);
+			}
+		}
+	}
+
+	flush() {
+		this.cache.flushAll();
+	}
 }
-
 
 module.exports = Cache;

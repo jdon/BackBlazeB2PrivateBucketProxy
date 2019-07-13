@@ -32,7 +32,7 @@ class b2Wrapper {
 			debug('Successfully authorized with B2');
 
 			this.b2 = authedB2;
-			return true
+			return true;
 		} catch (err) {
 			debug(
 				'Unable to authorize with B2, please check your credentials!'

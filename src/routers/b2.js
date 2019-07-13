@@ -23,7 +23,7 @@ let b2 = new b2Wrapper(
 
 b2Router.get('*', async (req, res) => {
 	debug(req.path);
-	const fileNameWithPath = req.path.slice(1);
+	const fileNameWithPath = decodeURI(req.path.slice(1));
 	const cachedResponse = cache.get(fileNameWithPath);
 	if(cachedResponse != null){
 		return res.redirect(cachedResponse);

@@ -10,6 +10,8 @@
 	"author": "",
 	"license": "ISC",
 	"dependencies": {
+		"@bugsnag/js": "^6.4.0",
+		"@bugsnag/plugin-express": "^6.4.0",
 		"backblaze-b2": "^1.4.0",
 		"debug": "^4.1.1",
 		"dotenv": "^8.0.0",

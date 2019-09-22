@@ -1,1 +1,1 @@
-docker run --name b2proxy -p 8080:8080 --env-file .env -d jdon278/b2proxy
+docker run --name b2proxy -p 9082:9082 --env-file .env -d jdon278/b2proxy

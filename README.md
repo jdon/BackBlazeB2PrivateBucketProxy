@@ -15,6 +15,7 @@ bucketName=bucketName
 downloadURL=https://domain.tld/files
 authSeconds=604800
 DEBUG=B2Proxy
+bugsnagcode=dsadsadsad2rh0gry328t0032po
 ```
 
 For running the docker you can also use the `.env` file. e.g
